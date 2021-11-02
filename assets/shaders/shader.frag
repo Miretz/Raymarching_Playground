@@ -149,7 +149,6 @@ float scene1(vec3 samplePoint) {
 	return csgNut;
 }
 
-
 float scene2(vec3 p) {
     
 	//rotate the whole space
@@ -161,15 +160,16 @@ float scene2(vec3 p) {
 	//repeat
     float c = pMod1(p.z, 2.);
     float wall = boxSDF(p, vec3(0.2,2.,2.));
+    
     if(sin(iTime * 0.25) >= 0.0){
         float wall_pillar = boxSDF(rotateY(radians(-90.0)) * p + vec3(0.9,0.,0.), vec3(0.2,2.,0.3));
-        wall = fOpUnionRound(wall_pillar, wall, 0.05);
+        wall = fOpUnionRound(wall_pillar, wall, 0.5);
     }
     else {
-        float wall_pillar = boxSDF(rotateY(radians(-90.0)) * p + vec3(0.9,0.,0.), vec3(0.2,2.,0.4));
-        wall = fOpUnionColumns(wall_pillar, wall, 0.05, 2.0);
-    }    
-    
+        float wall_pillar = boxSDF(rotateY(radians(-90.0)) * p + vec3(0.9,0.,0.), vec3(0.2,2.,0.3));
+        wall = fOpUnionRound(wall_pillar, wall, 0.05);
+    }   
+
 	//window shape
     p.z = abs(p.z)-.3;
     p.z = abs(p.z)+.02;
@@ -218,7 +218,7 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
 
 vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
     vec2 xy = fragCoord - size / 2.0;
-    float z = size.y / tan(radians(fieldOfView) / 1.5);
+    float z = size.y / tan(radians(fieldOfView) / 1.1);
     return normalize(vec3(xy, -z));
 }
 
@@ -251,7 +251,7 @@ vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
 }
 
 vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
-    const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
+    const vec3 ambientLight = 0.2 * vec3(1.0, 1.0, 1.0);
     vec3 color = ambientLight * k_a;
     vec3 light1Pos = vec3(4.0 * sin(iTime),
                           2.0,
@@ -275,6 +275,12 @@ mat4 viewMatrix(vec3 eye, vec3 center, vec3 up) {
     vec3 f = normalize(center - eye);
     vec3 s = normalize(cross(f, up));
     vec3 u = cross(s, f);
+
+    if(sin(iTime * 0.5) >= 0.0)
+    {
+        f = -f;
+    }
+
     return mat4(
         vec4(s, 0.0),
         vec4(u, 0.0),
@@ -409,9 +415,9 @@ void main()
     vec3 background = vec3(0);
     
 	//fullscreen effects
-	vec3 water = generateWater(iTime, q);
+	vec3 water = generateWater(iTime, q * 2.0);
     vec3 elev = elevator(gl_FragCoord.xy, iResolution.xy);
-    vec3 gradient = vec3(q*0.2, 0.5+0.5*sin(iTime * 2.0));
+    vec3 gradient = vec3(q*0.2, 0.6+0.5*sin(iTime * 1.3));
     
 	//camera position
 	vec3 eye = vec3(8.0, 0.0, 0.0);
@@ -422,8 +428,9 @@ void main()
         if(sin(iTime * 0.25) >= 0.0){
             gradient = -gradient;
         }
-        else{
-            gradient = vec3(0.1,0.1,1.0);
+        else 
+        {
+            gradient = elev - water;
         }
     } 
     else
@@ -449,7 +456,7 @@ void main()
 	vec3 K_a = vec3(0.2, 0.2, 0.2);
 	vec3 K_d = vec3(0.7, 0.2, 0.2);
 	vec3 K_s = vec3(1.0, 1.0, 1.0);	
-    float shinyness = 4.0;
+    float shinyness = 6.0;
 	vec3 color = phongIllumination(K_a, K_d, K_s, shinyness, eye + dist * worldDir, eye);
     
 	gl_FragColor = vec4(mix(color, gradient, 0.2), 1.0);
