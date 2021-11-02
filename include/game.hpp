@@ -11,16 +11,11 @@ inline constexpr float kMenuY = 20.f;
 inline constexpr unsigned int kDefaultWindowWidth = 848;
 inline constexpr unsigned int kDefaultWindowHeight = 480;
 inline constexpr auto kGameTitle = "Raymarching Playground";
-inline constexpr int kFramerateLimit = 400;
-
-inline constexpr float kTimeStep = 1.f;
-inline constexpr float kTimeSlice = 1.f;
+inline constexpr int kFramerateLimit = 60;
 
 inline constexpr size_t kMainMenuId = 0;
 inline constexpr size_t kOptionsMenuId = 1;
 inline constexpr size_t kExitMenuId = 2;
-
-inline constexpr float kShaderDownscale = 1.f;
 
 enum class GameState
 {
@@ -40,11 +35,8 @@ private:
 
     sf::Clock clock_;
 
-    float lastTime_ = 0.f;
-    float currentSlice_ = 0.f;
-
     sf::Shader shader_;
-    sf::Vector2f shaderResolution_;
+    const sf::Vector2f shaderResolution_ = sf::Vector2f(kDefaultWindowWidth, kDefaultWindowHeight);
 
     bool isRunning_ = false;
     bool isFullscreen_ = false;
@@ -62,6 +54,5 @@ private:
     void initializeTexture();
     void initializeShader();
     void checkInput();
-    void update();
     void draw();
 };

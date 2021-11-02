@@ -1,7 +1,8 @@
 #include "game.hpp"
 
-#include <chrono>
+#include <cmath>
 #include <memory>
+#include <sstream>
 #include <vector>
 
 #include "SFML/Graphics/Shader.hpp"
@@ -20,28 +21,20 @@ void Game::run()
 
     isRunning_ = true;
 
+    sf::Clock fpsClock;
+
     while (isRunning_)
     {
-        auto time1(std::chrono::high_resolution_clock::now());
-
         window_.clear(sf::Color::Black);
         renderTexture_.clear();
 
         checkInput();
-        update();
         draw();
 
-        auto time2(std::chrono::high_resolution_clock::now());
-        auto elapsedTime(time2 - time1);
-        auto frameTime = std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(elapsedTime).count();
-
-        lastTime_ = frameTime;
-
-        const auto ftSeconds = lastTime_ / 1000.f;
-        if (ftSeconds > 0.f)
-        {
-            window_.setTitle("FT: " + std::to_string(frameTime) + "\tFPS: " + std::to_string(1.f / ftSeconds));
-        }
+        std::ostringstream ss;
+        ss << "FPS: ";
+        ss << static_cast<int>(std::lround(1.f / fpsClock.restart().asSeconds()));
+        window_.setTitle(ss.str());
     }
 }
 
@@ -68,21 +61,6 @@ void Game::checkInput()
         {
             menus_.at(currentMenuId_).handleInput(event, mousePos);
         }
-    }
-}
-
-void Game::update()
-{
-    if (gameState_ != GameState::IN_GAME)
-    {
-        return;
-    }
-
-    currentSlice_ += lastTime_;
-
-    for (; currentSlice_ >= kTimeSlice; currentSlice_ -= kTimeSlice)
-    {
-        // sleep
     }
 }
 
@@ -116,7 +94,6 @@ void Game::initializeWindow()
     {
         window_.create(sf::VideoMode(kDefaultWindowWidth, kDefaultWindowHeight), kGameTitle, sf::Style::Close);
     }
-    shaderResolution_ = sf::Vector2f(kDefaultWindowWidth, kDefaultWindowHeight);
     shader_.setUniform("iResolution", shaderResolution_);
     window_.setFramerateLimit(kFramerateLimit);
     window_.setVerticalSyncEnabled(true);
