@@ -30,9 +30,18 @@ FetchContent_MakeAvailable(SFML)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -ggdb -Wall -Wextra -Wshadow -pedantic")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
+
+if(MSVC)
+    add_compile_options("/std:c++17" "/W4" "$<$<CONFIG:RELEASE>:/O2>")
+else()
+    add_compile_options("-std=c++17" "-Wall" "-Wextra" "-Wshadow" "-pedantic" "$<$<CONFIG:RELEASE>:-O3>")
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        add_compile_options("-stdlib=libc++")
+    else()
+        # nothing special for gcc at the moment
+    endif()
+endif()
 
 set(SOURCES
     src/main.cpp
